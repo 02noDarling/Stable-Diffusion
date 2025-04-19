@@ -27,7 +27,7 @@ class MNISTDataset(Dataset):
                 self.labels.append(label)
 
     def __len__(self):
-        return len(self.image_paths)
+        return len(self.img_paths)
 
     def __getitem__(self, index):
         img_path = self.img_paths[index]
@@ -35,7 +35,7 @@ class MNISTDataset(Dataset):
         img_tensor = pil_to_tensor(img)
         label = self.labels[index]
 
-        return img_tensor, label
+        return img_tensor * 2 -1, label
 
 if __name__ == "__main__":
     # image = Image.open(r"D:\02图片\zerotwo.png")
