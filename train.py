@@ -7,11 +7,11 @@ from dataset import *
 from config import *
 
 
-betas = torch.linspace(start=1e-4, end=2e-2, steps=T)
-alphas = 1 - betas
-alphas_pi = torch.cumprod(alphas, dim=0)
-alphas_pi_pre = torch.cat((torch.tensor([1]), alphas_pi[:-1]), dim=0)
-variance = (1 - alphas) * (1 - alphas_pi_pre) / (1 - alphas_pi)
+betas = torch.linspace(start=1e-4, end=2e-2, steps=T).to(DEVCIE)
+alphas = (1 - betas).to(DEVCIE)
+alphas_pi = torch.cumprod(alphas, dim=0).to(DEVCIE)
+alphas_pi_pre = torch.cat((torch.tensor([1]).to(DEVCIE), alphas_pi[:-1]), dim=0).to(DEVCIE)
+variance = ((1 - alphas) * (1 - alphas_pi_pre) / (1 - alphas_pi)).to(DEVCIE)
 
 def forward_diffusion(batch_img_tensor, batch_time):
     batch_size = batch_img_tensor.shape[0]
@@ -28,15 +28,24 @@ if __name__ == "__main__":
     model = Unet(channel_list=channel_list)
 
     if os.path.exists("checkpoints.pth"):
-        checkpoints = torch.load("checkpoints.pth")
+        checkpoints = torch.load("checkpoints.pth", map_location='cpu')
         model.load_state_dict(checkpoints)
-    optimizer = optim.Adam(model.parameters(), lr=1e-6)
+    model = model.to(DEVCIE)
+    optimizer = optim.Adam(model.parameters(), lr=5e-5)
     mse_loss = nn.MSELoss(reduction='mean')
-    for epoch in EPOCH:
+    for epoch in range(EPOCH):
         for batch_img_tensor, batch_label in dataloader:
             batch_size = batch_img_tensor.shape[0]
             batch_time = torch.randint(0, T, (batch_size, 1))
+
+            batch_img_tensor = batch_img_tensor.to(DEVCIE)
+            batch_time = batch_time.to(DEVCIE)
+
             batch_img_tensor, batch_noise = forward_diffusion(batch_img_tensor, batch_time)
+            
+            batch_img_tensor = batch_img_tensor.to(DEVCIE)
+            batch_noise =batch_noise.to(DEVCIE)
+
             batch_pred_noise = model(batch_img_tensor, batch_time)
 
             # Compute loss

@@ -12,9 +12,11 @@ class Time_Embedding(nn.Module):
     def forward(self, time):
         batch_size = time.shape[0]
         position = torch.exp(torch.arange(0, self.emb_size, 2) * (-math.log(10000)/self.emb_size))
+        position = position.to(DEVCIE)
         position_encoding = torch.zeros(batch_size, self.emb_size)
         position_encoding[:,0::2] = torch.sin(time * position)
         position_encoding[:,1::2] = torch.cos(time * position)
+        position_encoding = position_encoding.to(DEVCIE)
         position_encoding = self.linear(position_encoding)
         return position_encoding
 
