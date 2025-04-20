@@ -25,7 +25,7 @@ class ConvBlock(nn.Module):
     def forward(self, x, time):
         x = self.conv1(x)
         emb = self.time_emb(time)
-        x += emb.reshape(emb.shape[0], emb.shape[1], 1, 1)
+        x = x + emb.reshape(emb.shape[0], emb.shape[1], 1, 1)
         return self.conv2(x)
 
 class DownSample(nn.Module):
