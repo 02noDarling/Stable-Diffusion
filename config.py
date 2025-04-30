@@ -8,6 +8,6 @@ NHEAD = 1
 WORD_LEN = 16
 
 #train
-EPOCH = 100
-BATCH_SIZE = 5
+EPOCH = 1
+BATCH_SIZE = 20
 DEVCIE = 'cuda' if torch.cuda.is_available() else 'cpu'

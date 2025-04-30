@@ -34,7 +34,12 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=5e-5)
     mse_loss = nn.MSELoss(reduction='mean')
     for epoch in range(EPOCH):
+        counts = 0
         for batch_img_tensor, batch_label in dataloader:
+            counts += 1
+            if counts >= 1000:
+                break
+
             batch_size = batch_img_tensor.shape[0]
             batch_time = torch.randint(0, T, (batch_size, 1))
 

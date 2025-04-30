@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 
 channel_list = [1, 64, 128, 256, 512, 1024]
 model = Unet(channel_list=channel_list)
-checkpoints = torch.load("checkpoints.pth", map_location='cpu')
+checkpoints = torch.load("ckpt/checkpoints-stable_diffusion.pth", map_location='cpu')
 model.load_state_dict(checkpoints)
 model = model.to(DEVCIE)
 
-def backword_denoise(batch_img):
+def backword_denoise(batch_img, batch_cls):
     model.eval()
     batch_size = batch_img.shape[0]
     with torch.no_grad():
@@ -21,7 +21,8 @@ def backword_denoise(batch_img):
             noise = torch.randn(batch_size, 1, IMG_SIZE, IMG_SIZE).to(DEVCIE)
             batch_img = batch_img.to(DEVCIE)
             batch_time =batch_time.to(DEVCIE)
-            batch_pred_noise = model(batch_img, batch_time)
+            batch_cls =batch_cls.to(DEVCIE)
+            batch_pred_noise = model(batch_img, batch_time, batch_cls)
             if i!=0 :
                 batch_img = 1 / torch.sqrt(alphas[i]) * (batch_img - (1 - alphas[i])/torch.sqrt(1 - alphas_pi[i]) * batch_pred_noise) + torch.sqrt(variance[i]) * noise
             else:
@@ -32,7 +33,8 @@ def backword_denoise(batch_img):
 if __name__ == "__main__":
     batch_size = 10
     batch_img = torch.randn(batch_size, 1, IMG_SIZE, IMG_SIZE)
-    batch_img = backword_denoise(batch_img)
+    batch_cls = torch.arange(0, batch_size)
+    batch_img = backword_denoise(batch_img, batch_cls)
     batch_img = (batch_img + 1) / 2
     # batch_img =tensor_to_pil(batch_img)
     # print(batch_img) 
