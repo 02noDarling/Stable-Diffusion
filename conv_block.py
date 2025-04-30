@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from config import *
 from time_emb import *
+from cross_attention import *
 
 class ConvBlock(nn.Module):
     def __init__(self, in_channel, out_channel):
@@ -22,11 +23,25 @@ class ConvBlock(nn.Module):
             nn.ReLU()
         )
 
-    def forward(self, x, time):
+        self.linear = nn.Linear(EMB_SIZE, WORD_LEN * out_channel)
+        self.cross_attention = CrossAttention(out_channel, NHEAD, 2*out_channel)
+
+    def forward(self, x, time, cls):
         x = self.conv1(x)
         emb = self.time_emb(time)
         x = x + emb.reshape(emb.shape[0], emb.shape[1], 1, 1)
-        return self.conv2(x)
+        x = self.conv2(x)
+
+        cls = self.linear(cls)
+        cls = cls.reshape(cls.shape[0], WORD_LEN, cls.shape[1]//WORD_LEN)
+
+        img_size = x.shape[-1]
+        x = x.reshape(x.shape[0], x.shape[1], -1).transpose(-2, -1)
+        x = self.cross_attention(x, cls)
+
+        x = x.transpose(-2 ,-1)
+        x = x.reshape(x.shape[0], x.shape[1], img_size, img_size)
+        return x
 
 class DownSample(nn.Module):
     def __init__(self, channel):
@@ -61,5 +76,6 @@ if __name__ == "__main__":
     conv_down = DownSample(channel=3)
     input = torch.randn(10, 3, IMG_SIZE, IMG_SIZE)
     time = torch.randint(0, T, (10, 1))
-    output = conv(input, time)
+    cls = torch.randn(10, EMB_SIZE)
+    output = conv(input, time, cls)
     print(output.shape)

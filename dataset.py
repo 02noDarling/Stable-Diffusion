@@ -34,6 +34,7 @@ class MNISTDataset(Dataset):
         img = Image.open(img_path).convert("L")
         img_tensor = pil_to_tensor(img)
         label = self.labels[index]
+        label = torch.tensor(int(label))
 
         return img_tensor * 2 -1, label
 

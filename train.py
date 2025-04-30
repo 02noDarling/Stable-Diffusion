@@ -40,13 +40,14 @@ if __name__ == "__main__":
 
             batch_img_tensor = batch_img_tensor.to(DEVCIE)
             batch_time = batch_time.to(DEVCIE)
+            batch_label = batch_label.to(DEVCIE)
 
             batch_img_tensor, batch_noise = forward_diffusion(batch_img_tensor, batch_time)
             
             batch_img_tensor = batch_img_tensor.to(DEVCIE)
             batch_noise =batch_noise.to(DEVCIE)
 
-            batch_pred_noise = model(batch_img_tensor, batch_time)
+            batch_pred_noise = model(batch_img_tensor, batch_time, batch_label)
 
             # Compute loss
             loss = mse_loss(batch_pred_noise, batch_noise)
