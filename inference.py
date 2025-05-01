@@ -6,9 +6,9 @@ from dataset import *
 from train import *
 import matplotlib.pyplot as plt
 
-channel_list = [1, 64, 128, 256, 512, 1024]
+channel_list = [3, 64, 128, 256, 512, 1024]
 model = Unet(channel_list=channel_list)
-checkpoints = torch.load("ckpt/checkpoints-stable_diffusion.pth", map_location='cpu')
+checkpoints = torch.load("ckpt/checkpoints-stable_diffusion_02_RGB_48.pth", map_location='cpu')
 model.load_state_dict(checkpoints)
 model = model.to(DEVCIE)
 
@@ -31,8 +31,9 @@ def backword_denoise(batch_img, batch_cls):
     return batch_img
 
 if __name__ == "__main__":
-    batch_size = 10
-    batch_img = torch.randn(batch_size, 1, IMG_SIZE, IMG_SIZE)
+    batch_size = 12
+    channel = 3
+    batch_img = torch.randn(batch_size, channel, IMG_SIZE, IMG_SIZE)
     batch_cls = torch.arange(0, batch_size)
     batch_img = backword_denoise(batch_img, batch_cls)
     batch_img = (batch_img + 1) / 2

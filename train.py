@@ -21,10 +21,11 @@ def forward_diffusion(batch_img_tensor, batch_time):
     return img + noise_temp, noise
 
 if __name__ == "__main__":
-    dataset = MNISTDataset(data_dir="mnist_jpg")
+    # dataset = MNISTDataset(data_dir="mnist_jpg")
+    dataset = ZeroTwoDataset(data_dir="02_img")
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
     print(len(dataset))
-    channel_list = [1, 64, 128, 256, 512, 1024]
+    channel_list = [3, 64, 128, 256, 512, 1024]
     model = Unet(channel_list=channel_list)
 
     if os.path.exists("checkpoints.pth"):
@@ -34,11 +35,7 @@ if __name__ == "__main__":
     optimizer = optim.Adam(model.parameters(), lr=5e-5)
     mse_loss = nn.MSELoss(reduction='mean')
     for epoch in range(EPOCH):
-        counts = 0
         for batch_img_tensor, batch_label in dataloader:
-            counts += 1
-            if counts >= 1000:
-                break
 
             batch_size = batch_img_tensor.shape[0]
             batch_time = torch.randint(0, T, (batch_size, 1))

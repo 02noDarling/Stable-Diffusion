@@ -9,7 +9,7 @@ class Unet(nn.Module):
 
         self.channel_list = channel_list
 
-        self.cls_embedding = nn.Embedding(10, EMB_SIZE)
+        self.cls_embedding = nn.Embedding(12, EMB_SIZE)
 
         self.enc_blocks = nn.ModuleList()
         for i in range(1, len(channel_list)):
