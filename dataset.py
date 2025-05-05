@@ -43,12 +43,16 @@ class ZeroTwoDataset(Dataset):
         self.img_paths = []
         self.labels = []
 
+        counts = 0
         for filename in os.listdir(data_dir):
             if filename.endswith(".jpg") or filename.endswith(".png"):
                 file_path = os.path.join(data_dir, filename)
-                label = file_path[-5]
                 self.img_paths.append(file_path)
-                self.labels.append(label)
+                self.labels.append(counts)
+                counts += 1
+        
+        self.img_paths = self.img_paths * 100
+        self.labels = self.labels * 100
     
     def __len__(self):
         return len(self.img_paths)
@@ -105,6 +109,8 @@ if __name__ == "__main__":
     # img = tensor_to_pil(img_tensor)
     # img.show()
 
+    dataset_process('02_img', '02_img_RGB_48')
+    exit(0)
     dataset = ZeroTwoDataset(data_dir="02_img")
 
     for i in range(len(dataset)):
@@ -112,6 +118,7 @@ if __name__ == "__main__":
         img_tensor = (img_tensor + 1) / 2
         img = tensor_to_pil(img_tensor)
         img.show()
+
     # img_tensor = dataset[4]
     # print(img_tensor.shape)
 

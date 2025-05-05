@@ -3,3 +3,5 @@ __pycache__
 mnist_jpg
 ckpt
 02_img
+02_img_RGB_48
+lora.pth

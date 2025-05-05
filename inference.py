@@ -4,12 +4,39 @@ from config import *
 from unet import *
 from dataset import *
 from train import *
+from lora import *
 import matplotlib.pyplot as plt
 
 channel_list = [3, 64, 128, 256, 512, 1024]
 model = Unet(channel_list=channel_list)
-checkpoints = torch.load("ckpt/checkpoints-stable_diffusion_02_RGB_48.pth", map_location='cpu')
+model_path = "ckpt/checkpoints-stable_diffusion_02_RGB_48.pth"
+checkpoints = torch.load(model_path, map_location='cpu')
 model.load_state_dict(checkpoints)
+# for name, layer in model.named_parameters():
+#     print(name)
+    # print(layer)
+# print(type(model.state_dict()))
+# for key, value in model.state_dict().items():
+#     print(key) 
+
+if USE_LORA:
+    for name, layer in list(model.named_modules()):
+        name_clos = name.split('.')
+        if (name_clos[-1] in LORA_FINETUNE_LAYERS) and isinstance(layer, nn.Linear):
+                inject_lora(model, name) 
+
+    lora_state = torch.load('lora.pth')
+    model.load_state_dict(lora_state, strict=False)
+
+    for name, layer in list(model.named_modules()):
+        if isinstance(layer, LoraLayer):
+            layer.raw_linear.weight = nn.Parameter(layer.raw_linear.weight.add(torch.matmul(layer.lora_a, layer.lora_b).T * LORA_ALPHA / LORA_R))
+            cur_layer = model
+            name_cols = name.split('.')
+            for item in name_cols[:-1]:
+                cur_layer = getattr(cur_layer, item)
+            setattr(cur_layer, name_cols[-1], layer.raw_linear)
+
 model = model.to(DEVCIE)
 
 def backword_denoise(batch_img, batch_cls):
@@ -31,7 +58,7 @@ def backword_denoise(batch_img, batch_cls):
     return batch_img
 
 if __name__ == "__main__":
-    batch_size = 12
+    batch_size = 3
     channel = 3
     batch_img = torch.randn(batch_size, channel, IMG_SIZE, IMG_SIZE)
     batch_cls = torch.arange(0, batch_size)
